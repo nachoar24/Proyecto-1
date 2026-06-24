@@ -1,50 +1,48 @@
 <x-layout title="Editar idea">
-    <section>
-        <h1 class="text-2xl font-bold mb-4">Editar idea</h1>
+    <section class="card bg-base-200 shadow-xl">
+        <div class="card-body">
+            <h1 class="card-title text-2xl">Editar idea</h1>
 
-        <form method="POST" action="/ideas/{{ $idea->id }}" class="space-y-4">
-            @csrf
-            @method('PATCH')
+            <form method="POST" action="/ideas/{{ $idea->id }}" class="mt-4 space-y-4">
+                @csrf
+                @method('PATCH')
 
-            <div>
-                <label for="description" class="block text-sm font-medium mb-2">
-                    Descripción
-                </label>
+                <div>
+                    <label for="description" class="label">
+                        <span class="label-text">Descripción</span>
+                    </label>
 
-                <textarea
-                    id="description"
-                    name="description"
-                    rows="4"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
-                >{{ old('description', $idea->description) }}</textarea>
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="5"
+                        class="textarea textarea-bordered w-full @error('description') textarea-error @enderror"
+                    >{{ old('description', $idea->description) }}</textarea>
 
-                <x-forms.error name="description" />
-            </div>
+                    <x-forms.error name="description" />
+                </div>
 
-            <button
-                type="submit"
-                class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
-                Actualizar
-            </button>
-        </form>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn btn-primary">
+                        Actualizar
+                    </button>
 
-        <form method="POST" action="/ideas/{{ $idea->id }}" class="mt-4">
-            @csrf
-            @method('DELETE')
+                    <a href="/ideas/{{ $idea->id }}" class="btn btn-ghost">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
 
-            <button
-                type="submit"
-                class="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
-            >
-                Eliminar
-            </button>
-        </form>
+            <div class="divider"></div>
 
-        <p class="mt-6">
-            <a href="/ideas/{{ $idea->id }}" class="text-blue-300 hover:underline">
-                Cancelar y volver al detalle
-            </a>
-        </p>
+            <form method="POST" action="/ideas/{{ $idea->id }}">
+                @csrf
+                @method('DELETE')
+
+                <button type="submit" class="btn btn-error">
+                    Eliminar idea
+                </button>
+            </form>
+        </div>
     </section>
 </x-layout>

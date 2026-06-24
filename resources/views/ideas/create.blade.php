@@ -1,38 +1,37 @@
 <x-layout title="Crear idea">
-    <section>
-        <h1 class="text-2xl font-bold mb-4">Crear nueva idea</h1>
+    <section class="card bg-base-200 shadow-xl">
+        <div class="card-body">
+            <h1 class="card-title text-2xl">Crear nueva idea</h1>
 
-        <form method="POST" action="/ideas" class="space-y-4">
-            @csrf
+            <form method="POST" action="/ideas" class="mt-4 space-y-4">
+                @csrf
 
-            <div>
-                <label for="description" class="block text-sm font-medium mb-2">
-                    Descripción
-                </label>
+                <div>
+                    <label for="description" class="label">
+                        <span class="label-text">Descripción</span>
+                    </label>
 
-                <textarea
-                    id="description"
-                    name="description"
-                    rows="4"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
-                    placeholder="Escribe una idea que quieras guardar para después"
-                >{{ old('description') }}</textarea>
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="5"
+                        class="textarea textarea-bordered w-full @error('description') textarea-error @enderror"
+                        placeholder="Escribe una idea que quieras guardar para después"
+                    >{{ old('description') }}</textarea>
 
-                <x-forms.error name="description" />
-            </div>
+                    <x-forms.error name="description" />
+                </div>
 
-            <button
-                type="submit"
-                class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
-                Guardar
-            </button>
-        </form>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn btn-primary">
+                        Guardar
+                    </button>
 
-        <p class="mt-6">
-            <a href="/ideas" class="text-blue-300 hover:underline">
-                Volver al listado de ideas
-            </a>
-        </p>
+                    <a href="/ideas" class="btn btn-ghost">
+                        Volver al listado
+                    </a>
+                </div>
+            </form>
+        </div>
     </section>
 </x-layout>
