@@ -9,8 +9,8 @@ class IdeaController extends Controller
 {
     public function index()
     {
-        $ideas = Idea::query()
-            ->where('user_id', auth()->id())
+        $ideas = auth()->user()
+            ->ideas()
             ->latest()
             ->get();
 
@@ -28,8 +28,7 @@ class IdeaController extends Controller
     {
         $validated = $request->validated();
 
-        Idea::create([
-            'user_id' => auth()->id(),
+        auth()->user()->ideas()->create([
             'description' => $validated['description'],
             'state' => 'pending',
         ]);
