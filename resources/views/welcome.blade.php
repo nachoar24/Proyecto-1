@@ -1,15 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-</head>
-<body>
-    <h1>Bienvenido</h1>
+<x-layout title="Inicio">
+    <h1>Bienvenido al Proyecto Laravel From Scratch</h1>
+
     <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos sint ipsa placeat quibusdam cum, corrupti, iste itaque, vitae enim eaque possimus laboriosam expedita debitis ducimus culpa dolores voluptatibus. Incidunt, voluptas?
+        Este sitio forma parte del Proyecto 1 del curso ISW811 Aplicaciones Web con Software Libre.
+        Su objetivo es evidenciar el avance práctico del curso Laravel From Scratch 2026,
+        aplicando rutas, vistas, componentes Blade, formularios, base de datos, autenticación
+        y buenas prácticas de desarrollo web con Laravel.
     </p>
-    <a href="/about">Acerca de nosotros</a>
-</body>
-</html>
+</x-layout>
