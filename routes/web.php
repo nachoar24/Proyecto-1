@@ -6,6 +6,11 @@ Route::get('/', function () {
     return view('welcome', [
         'saludo' => 'Hola',
         'persona' => request('persona', 'mundo'),
+        'tareas' => [
+            'Revisar rutas de Laravel',
+            'Practicar componentes Blade',
+            'Documentar el avance del proyecto',
+        ],
     ]);
 });
 

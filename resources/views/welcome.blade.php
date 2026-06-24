@@ -9,11 +9,28 @@
     </p>
 
     <p>
-        En este episodio se demuestra cómo enviar datos desde una ruta hacia una vista.
-        También se utiliza un parámetro de consulta en la URL para personalizar el saludo.
+        En este episodio se demuestra cómo enviar un arreglo desde una ruta hacia una vista
+        y cómo recorrerlo utilizando directivas Blade.
     </p>
 
+    <section>
+        <h2>Tareas del proyecto</h2>
+
+        @if (count($tareas) > 0)
+            <p>Actualmente hay {{ count($tareas) }} tareas registradas:</p>
+        @endif
+
+        <ul>
+            @forelse ($tareas as $tarea)
+                <li>{{ $tarea }}</li>
+            @empty
+                <li>No hay tareas activas por el momento.</li>
+            @endforelse
+        </ul>
+    </section>
+
     <p>
-        Prueba agregando <strong>?persona=Ignacio</strong> al final de la URL principal.
+        Prueba agregando <strong>?persona=Ignacio</strong> al final de la URL principal
+        para personalizar el saludo.
     </p>
 </x-layout>
