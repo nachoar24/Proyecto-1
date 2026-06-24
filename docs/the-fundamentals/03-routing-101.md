@@ -155,9 +155,7 @@ Como evidencia de este episodio se puede observar que el archivo `routes/web.php
 
 Cuando se agreguen capturas para el entregable, se puede incluir una imagen de la página principal y otra de la página `/about`, por ejemplo:
 
-```markdown
 ![Ruta About funcionando](../img/03-routing-101-about.png)
-```
 
 ---
 
