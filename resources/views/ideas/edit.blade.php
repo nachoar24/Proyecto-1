@@ -16,7 +16,9 @@
                     name="description"
                     rows="4"
                     class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
-                >{{ $idea->description }}</textarea>
+                >{{ old('description', $idea->description) }}</textarea>
+
+                <x-forms.error name="description" />
             </div>
 
             <button

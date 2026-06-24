@@ -16,7 +16,9 @@
                     rows="4"
                     class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
                     placeholder="Escribe una idea que quieras guardar para después"
-                ></textarea>
+                >{{ old('description') }}</textarea>
+
+                <x-forms.error name="description" />
             </div>
 
             <button

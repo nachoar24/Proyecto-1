@@ -23,8 +23,15 @@ class IdeaController extends Controller
 
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'description' => ['required', 'min:10'],
+        ], [
+            'description.required' => 'La descripción es obligatoria.',
+            'description.min' => 'La descripción debe tener al menos :min caracteres.',
+        ]);
+
         Idea::create([
-            'description' => $request->input('description'),
+            'description' => $validated['description'],
             'state' => 'pending',
         ]);
 
@@ -47,8 +54,15 @@ class IdeaController extends Controller
 
     public function update(Request $request, Idea $idea)
     {
+        $validated = $request->validate([
+            'description' => ['required', 'min:10'],
+        ], [
+            'description.required' => 'La descripción es obligatoria.',
+            'description.min' => 'La descripción debe tener al menos :min caracteres.',
+        ]);
+
         $idea->update([
-            'description' => $request->input('description'),
+            'description' => $validated['description'],
         ]);
 
         return redirect('/ideas/' . $idea->id);
