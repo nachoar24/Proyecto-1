@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IdeaRequest;
 use App\Models\Idea;
-use Illuminate\Http\Request;
 
 class IdeaController extends Controller
 {
@@ -21,14 +21,9 @@ class IdeaController extends Controller
         return view('ideas.create');
     }
 
-    public function store(Request $request)
+    public function store(IdeaRequest $request)
     {
-        $validated = $request->validate([
-            'description' => ['required', 'min:10'],
-        ], [
-            'description.required' => 'La descripción es obligatoria.',
-            'description.min' => 'La descripción debe tener al menos :min caracteres.',
-        ]);
+        $validated = $request->validated();
 
         Idea::create([
             'description' => $validated['description'],
@@ -52,14 +47,9 @@ class IdeaController extends Controller
         ]);
     }
 
-    public function update(Request $request, Idea $idea)
+    public function update(IdeaRequest $request, Idea $idea)
     {
-        $validated = $request->validate([
-            'description' => ['required', 'min:10'],
-        ], [
-            'description.required' => 'La descripción es obligatoria.',
-            'description.min' => 'La descripción debe tener al menos :min caracteres.',
-        ]);
+        $validated = $request->validated();
 
         $idea->update([
             'description' => $validated['description'],
