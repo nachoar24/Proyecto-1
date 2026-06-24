@@ -11,9 +11,11 @@
                 <a href="/ideas">Inicio</a>
             </li>
 
-            <li>
-                <a href="/ideas/create">Nueva idea</a>
-            </li>
+            @auth
+                <li>
+                    <a href="/ideas/create">Nueva idea</a>
+                </li>
+            @endauth
 
             <li>
                 <a href="/about">Acerca de</a>
