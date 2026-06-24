@@ -12,7 +12,7 @@
 <body class="min-h-screen bg-gray-700 text-white">
     <header class="mx-auto max-w-2xl p-6">
         <nav class="flex gap-4">
-            <a href="/" class="text-blue-300 hover:underline">Inicio</a>
+            <a href="/ideas" class="text-blue-300 hover:underline">Inicio</a>
             <a href="/about" class="text-blue-300 hover:underline">Acerca de</a>
             <a href="/contact" class="text-blue-300 hover:underline">Contacto</a>
         </nav>
