@@ -32,14 +32,24 @@
         </form>
     </section>
 
-    @if (count($ideas) > 0)
-        <section class="mt-8">
+    <section class="mt-8">
+        <div class="mb-4 flex gap-4 text-sm">
+            <a href="/" class="text-blue-300 hover:underline">Todas</a>
+            <a href="/?state=pending" class="text-blue-300 hover:underline">Pendientes</a>
+            <a href="/?state=completed" class="text-blue-300 hover:underline">Completadas</a>
+        </div>
+
+        @if ($ideas->count() > 0)
             <h2 class="text-xl font-bold mb-3">Tus ideas</h2>
 
             <ul class="space-y-2">
                 @foreach ($ideas as $idea)
                     <li class="rounded-md bg-gray-800 p-3 text-sm">
-                        {{ $idea }}
+                        <p>{{ $idea->description }}</p>
+
+                        <p class="mt-1 text-xs text-gray-400">
+                            Estado: {{ $idea->state }}
+                        </p>
                     </li>
                 @endforeach
             </ul>
@@ -49,6 +59,10 @@
                     Eliminar ideas temporalmente
                 </a>
             </p>
-        </section>
-    @endif
+        @else
+            <p class="mt-6 text-sm text-gray-300">
+                No hay ideas registradas por el momento.
+            </p>
+        @endif
+    </section>
 </x-layout>
