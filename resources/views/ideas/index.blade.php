@@ -1,41 +1,17 @@
 <x-layout title="Ideas">
     <section>
-        <h1 class="text-2xl font-bold mb-4">Nueva idea</h1>
+        <div class="mb-6 flex items-center justify-between">
+            <h1 class="text-2xl font-bold">Tus ideas</h1>
 
-        <form method="POST" action="/ideas" class="space-y-4">
-            @csrf
-
-            <div>
-                <label for="description" class="block text-sm font-medium mb-2">
-                    Idea
-                </label>
-
-                <textarea
-                    id="description"
-                    name="description"
-                    rows="4"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
-                    placeholder="Escribe una idea que quieras guardar para después"
-                ></textarea>
-
-                <p class="mt-2 text-sm text-gray-300">
-                    ¿Tienes una idea que quieras guardar para más tarde?
-                </p>
-            </div>
-
-            <button
-                type="submit"
+            <a
+                href="/ideas/create"
                 class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
-                Guardar
-            </button>
-        </form>
-    </section>
+                Crear nueva idea
+            </a>
+        </div>
 
-    <section class="mt-8">
         @if ($ideas->count() > 0)
-            <h2 class="text-xl font-bold mb-3">Tus ideas</h2>
-
             <ul class="space-y-2">
                 @foreach ($ideas as $idea)
                     <li class="rounded-md bg-gray-800 p-3 text-sm">
@@ -50,9 +26,15 @@
                 @endforeach
             </ul>
         @else
-            <p class="mt-6 text-sm text-gray-300">
-                No hay ideas registradas por el momento.
-            </p>
+            <div class="rounded-md bg-gray-800 p-6 text-sm">
+                <p class="mb-4">
+                    No hay ideas registradas todavía.
+                </p>
+
+                <a href="/ideas/create" class="text-blue-300 underline">
+                    Crear la primera idea
+                </a>
+            </div>
         @endif
     </section>
 </x-layout>
