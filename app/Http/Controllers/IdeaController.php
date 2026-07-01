@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\IdeaRequest;
 use App\Models\Idea;
-use Illuminate\Support\Facades\Gate;
 use App\Notifications\IdeaPublished;
+use Illuminate\Support\Facades\Gate;
 
 class IdeaController extends Controller
 {
@@ -28,16 +28,16 @@ class IdeaController extends Controller
 
     public function store(IdeaRequest $request)
     {
-    $validated = $request->validated();
+        $validated = $request->validated();
 
-    $idea = auth()->user()->ideas()->create([
-        'description' => $validated['description'],
-        'state' => 'pending',
-    ]);
+        $idea = auth()->user()->ideas()->create([
+            'description' => $validated['description'],
+            'state' => 'pending',
+        ]);
 
-    auth()->user()->notify(new IdeaPublished($idea));
+        auth()->user()->notify(new IdeaPublished($idea));
 
-    return redirect('/ideas');
+        return redirect('/ideas');
     }
 
     public function show(Idea $idea)
@@ -68,7 +68,7 @@ class IdeaController extends Controller
             'description' => $validated['description'],
         ]);
 
-        return redirect('/ideas/' . $idea->id);
+        return redirect('/ideas/'.$idea->id);
     }
 
     public function destroy(Idea $idea)

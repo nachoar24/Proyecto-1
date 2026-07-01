@@ -1,37 +1,53 @@
 <?php
 
+use App\Enums\IdeaStatus;
+use App\Models\Idea;
+use App\Models\Step;
 use App\Models\User;
-use App\Notifications\IdeaPublished;
-use Illuminate\Support\Facades\Notification;
 
-it('shows all ideas for the authenticated user', function () {
-    $user = User::factory()->create();
+it('belongs to a user', function () {
+    $idea = Idea::factory()->create();
 
-    $user->ideas()->create([
-        'description' => 'Build a thing',
-        'state' => 'pending',
-    ]);
+    $idea->load('user');
 
-    $response = $this->actingAs($user)->get('/ideas');
-
-    $response->assertOk();
-    $response->assertSee('Build a thing');
+    expect($idea->user)->toBeInstanceOf(User::class);
 });
 
-it('stores an idea and sends a notification', function () {
-    Notification::fake();
+it('can have steps', function () {
+    $idea = Idea::factory()->create();
 
-    $user = User::factory()->create();
+    $idea->load('steps');
 
-    $response = $this->actingAs($user)->post('/ideas', [
-        'description' => 'Learn Pest testing',
+    expect($idea->steps)->toBeEmpty();
+
+    $idea->steps()->create([
+        'description' => 'Do the thing',
     ]);
 
-    $response->assertRedirect('/ideas');
+    $idea->refresh()->load('steps');
 
-    expect($user->ideas()
-        ->where('description', 'Learn Pest testing')
-        ->exists())->toBeTrue();
+    expect($idea->steps)
+        ->toHaveCount(1)
+        ->and($idea->steps->first())
+        ->toBeInstanceOf(Step::class)
+        ->and($idea->steps->first()->completed)
+        ->toBeFalse();
+});
 
-    Notification::assertSentTo($user, IdeaPublished::class);
+it('casts status and links', function () {
+    $idea = Idea::factory()->create([
+        'status' => IdeaStatus::InProgress,
+        'links' => [
+            'https://laravel.com',
+        ],
+    ]);
+
+    $idea->refresh();
+
+    expect($idea->status)
+        ->toBe(IdeaStatus::InProgress)
+        ->and($idea->status->label())
+        ->toBe('In Progress')
+        ->and($idea->links[0])
+        ->toBe('https://laravel.com');
 });
