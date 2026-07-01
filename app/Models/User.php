@@ -40,6 +40,11 @@ class User extends Authenticatable
         return $this->hasMany(Idea::class);
     }
 
+    public function isAdmin(): bool
+    {
+        return (int) $this->id === 1;
+    }
+
     /**
      * Get the attributes that should be cast.
      *

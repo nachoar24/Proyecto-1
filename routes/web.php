@@ -24,6 +24,10 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/ideas/{idea}', [IdeaController::class, 'destroy']);
 
+    Route::get('/admin', function () {
+        return view('admin.index');
+    })->can('view-admin');
+
     Route::delete('/logout', [SessionController::class, 'destroy']);
 });
 

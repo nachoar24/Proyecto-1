@@ -17,6 +17,12 @@
                 </li>
             @endauth
 
+            @can('view-admin')
+                <li>
+                    <a href="/admin">Administración</a>
+                </li>
+            @endcan
+
             <li>
                 <a href="/about">Acerca de</a>
             </li>
