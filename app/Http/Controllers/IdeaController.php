@@ -11,14 +11,12 @@ class IdeaController extends Controller
 {
     public function index()
     {
-        $ideas = auth()->user()
+    return view('ideas.index', [
+        'ideas' => auth()->user()
             ->ideas()
             ->latest()
-            ->get();
-
-        return view('ideas.index', [
-            'ideas' => $ideas,
-        ]);
+            ->get(),
+    ]);
     }
 
     public function create()

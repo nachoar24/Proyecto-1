@@ -21,7 +21,7 @@ it('can have steps', function () {
     expect($idea->steps)->toBeEmpty();
 
     $idea->steps()->create([
-        'description' => 'Do the thing',
+        'description' => 'Realizarlo',
     ]);
 
     $idea->refresh()->load('steps');
@@ -47,7 +47,7 @@ it('casts status and links', function () {
     expect($idea->status)
         ->toBe(IdeaStatus::InProgress)
         ->and($idea->status->label())
-        ->toBe('In Progress')
+        ->toBe('En progreso')
         ->and($idea->links[0])
         ->toBe('https://laravel.com');
 });

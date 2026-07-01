@@ -1,24 +1,17 @@
 @props([
-    'title' => null,
-    'description' => null,
+    'href' => null,
 ])
 
-<section {{ $attributes->merge(['class' => 'rounded-xl border border-border bg-card p-6 shadow-sm']) }}>
-    @if ($title || $description)
-        <header class="mb-6">
-            @if ($title)
-                <h1 class="text-2xl font-bold text-foreground">
-                    {{ $title }}
-                </h1>
-            @endif
+@php
+    $classes = 'rounded-2xl border border-border bg-card p-6 text-sm text-muted shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-lg';
+@endphp
 
-            @if ($description)
-                <p class="mt-2 text-sm text-muted">
-                    {{ $description }}
-                </p>
-            @endif
-        </header>
-    @endif
-
-    {{ $slot }}
-</section>
+@if ($href)
+    <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes . ' block']) }}>
+        {{ $slot }}
+    </a>
+@else
+    <section {{ $attributes->merge(['class' => $classes]) }}>
+        {{ $slot }}
+    </section>
+@endif

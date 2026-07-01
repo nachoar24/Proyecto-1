@@ -11,7 +11,7 @@
     <body class="min-h-screen bg-background text-foreground antialiased">
         <x-layout.nav />
 
-        <main class="mx-auto max-w-5xl px-4 py-10">
+        <main class="mx-auto max-w-6xl px-6 py-12">
             {{ $slot }}
         </main>
         <x-flash />

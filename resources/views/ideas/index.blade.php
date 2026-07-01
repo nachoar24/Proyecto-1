@@ -1,53 +1,69 @@
-<x-layout title="Ideas">
-    <section>
-        <div class="mb-6 flex items-center justify-between gap-4">
-            <div>
-                <h1 class="text-3xl font-bold">Tus ideas</h1>
+<x-layout title="Mis ideas">
+    <div class="space-y-10">
+        <header class="mx-auto max-w-2xl text-center">
+            <h1 class="text-4xl font-bold tracking-tight text-foreground">
+                Mis ideas
+            </h1>
 
-                <p class="mt-2 text-sm opacity-80">
-                    Guarda, revisa y administra tus ideas desde este espacio.
+            <p class="mt-3 text-sm text-muted">
+                Organiza, revisa y da seguimiento a tus ideas.
+            </p>
+        </header>
+
+        @if ($ideas->isEmpty())
+            <x-card class="mx-auto max-w-xl text-center">
+                <h2 class="text-lg font-semibold text-foreground">
+                    Aún no tienes ideas
+                </h2>
+
+                <p class="mt-2 text-muted">
+                    Cuando registres una idea, aparecerá en esta sección.
                 </p>
-            </div>
 
-            <a href="/ideas/create" class="btn btn-primary">
-                Crear nueva idea
-            </a>
-        </div>
-
-        @if ($ideas->count() > 0)
-            <div class="grid gap-4 md:grid-cols-2">
+                <a href="/ideas/create" class="button mt-6">
+                    Crear idea
+                </a>
+            </x-card>
+        @else
+            <div class="grid gap-6 md:grid-cols-2">
                 @foreach ($ideas as $idea)
-                    <x-idea-card href="/ideas/{{ $idea->id }}">
-                        <div class="flex flex-col gap-3">
-                            <p>
-                                {{ $idea->description }}
-                            </p>
+                    @php
+                        $usesLegacyDescriptionAsTitle = $idea->title === 'Untitled idea' && filled($idea->description);
 
-                            <div>
-                                <span class="badge badge-outline badge-info">
-                                    {{ $idea->state }}
-                                </span>
+                        $title = $usesLegacyDescriptionAsTitle
+                            ? $idea->description
+                            : $idea->title;
+
+                        $description = $usesLegacyDescriptionAsTitle
+                            ? null
+                            : $idea->description;
+                    @endphp
+
+                    <x-card href="{{ route('ideas.show', $idea) }}" class="min-h-40">
+                        <div class="flex h-full flex-col justify-between gap-6">
+                            <div class="space-y-4">
+                                <div class="flex items-start justify-between gap-4">
+                                    <h2 class="max-w-[75%] text-lg font-semibold leading-snug text-foreground">
+                                        {{ $title }}
+                                    </h2>
+
+                                    <x-idea.status-label :status="$idea->status" />
+                                </div>
+
+                                @if ($description)
+                                    <p class="text-sm leading-6 text-muted">
+                                        {{ $description }}
+                                    </p>
+                                @endif
                             </div>
+
+                            <p class="text-xs text-muted">
+                                Creada {{ $idea->created_at->locale('es')->diffForHumans() }}
+                            </p>
                         </div>
-                    </x-idea-card>
+                    </x-card>
                 @endforeach
             </div>
-        @else
-            <div class="card bg-base-200 shadow-xl">
-                <div class="card-body">
-                    <h2 class="card-title">No hay ideas registradas todavía</h2>
-
-                    <p>
-                        Crea tu primera idea para comenzar a utilizar el cuaderno digital.
-                    </p>
-
-                    <div class="card-actions justify-end">
-                        <a href="/ideas/create" class="btn btn-primary">
-                            Crear la primera idea
-                        </a>
-                    </div>
-                </div>
-            </div>
         @endif
-    </section>
+    </div>
 </x-layout>
