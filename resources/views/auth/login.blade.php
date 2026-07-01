@@ -22,7 +22,7 @@
                 required
             />
 
-            <button type="submit" class="button mt-2 w-full">
+            <button type="submit" class="button mt-2 w-full" data-test="login-button">
                 Iniciar sesión
             </button>
         </form>

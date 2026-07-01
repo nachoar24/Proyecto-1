@@ -13,7 +13,7 @@
                 <form method="POST" action="/logout">
                     @csrf
 
-                    <button type="submit" class="button button-outline">
+                    <button type="submit" class="button button-outline" data-test="logout-button">
                         Cerrar sesión
                     </button>
                 </form>
