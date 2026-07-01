@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+@import './components/button.css' layer(components);
+@import './components/form.css' layer(components);
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -7,4 +10,16 @@
 
 @plugin "daisyui" {
     themes: dracula --default;
+}
+
+@theme {
+    --color-background: #0f172a;
+    --color-foreground: #f8fafc;
+    --color-card: #111827;
+    --color-card-foreground: #f9fafb;
+    --color-muted: #94a3b8;
+    --color-border: #1f2937;
+    --color-primary: #22c55e;
+    --color-primary-foreground: #052e16;
+    --color-danger: #ef4444;
 }
