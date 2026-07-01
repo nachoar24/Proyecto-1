@@ -10,6 +10,7 @@ it('registers a user', function () {
     ]);
 
     $response->assertRedirect('/ideas');
+    $response->assertSessionHas('success', 'Tu cuenta fue creada correctamente.');
 
     $this->assertAuthenticated();
 
@@ -31,6 +32,7 @@ it('logs in a user', function () {
     ]);
 
     $response->assertRedirect();
+    $response->assertSessionHas('success', 'Has iniciado sesión correctamente.');
 
     $this->assertAuthenticatedAs($user);
 });
@@ -41,6 +43,7 @@ it('logs out a user', function () {
     $response = $this->actingAs($user)->post('/logout');
 
     $response->assertRedirect();
+    $response->assertSessionHas('success', 'Has cerrado sesión correctamente.');
 
     $this->assertGuest();
 });

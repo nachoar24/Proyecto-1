@@ -40,6 +40,6 @@ class RegisteredUserController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect('/ideas');
+        return redirect('/ideas')->with('success', 'Tu cuenta fue creada correctamente.');
     }
 }

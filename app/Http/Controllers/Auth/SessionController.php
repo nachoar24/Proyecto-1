@@ -34,7 +34,7 @@ class SessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect('/ideas');
+        return redirect()->intended('/ideas')->with('success', 'Has iniciado sesión correctamente.');
     }
 
     public function destroy(Request $request)
@@ -45,6 +45,6 @@ class SessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/ideas');
+        return redirect('/login')->with('success', 'Has cerrado sesión correctamente.');
     }
 }
