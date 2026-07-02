@@ -6,16 +6,29 @@ use App\Http\Requests\IdeaRequest;
 use App\Models\Idea;
 use App\Notifications\IdeaPublished;
 use Illuminate\Support\Facades\Gate;
+use App\Enums\IdeaStatus;
+use Illuminate\Http\Request;
 
 class IdeaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+    $status = $request->query('status');
+
+    if (! in_array($status, IdeaStatus::values(), true)) {
+        $status = null;
+    }
+
+    $user = $request->user();
+
     return view('ideas.index', [
-        'ideas' => auth()->user()
-            ->ideas()
+        'ideas' => $user->ideas()
+            ->when($status, fn ($query) => $query->where('status', $status))
             ->latest()
             ->get(),
+        'statuses' => IdeaStatus::cases(),
+        'statusCounts' => Idea::statusCounts($user),
+        'currentStatus' => $status,
     ]);
     }
 

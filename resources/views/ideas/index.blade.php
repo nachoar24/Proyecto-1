@@ -10,19 +10,58 @@
             </p>
         </header>
 
+        <div class="flex flex-wrap items-center justify-center gap-3">
+            <a
+                href="{{ route('ideas.index') }}"
+                class="button {{ $currentStatus ? 'button-outline' : '' }}"
+            >
+                Todas
+                <span class="pl-1 text-xs">
+                    {{ $statusCounts->get('all', 0) }}
+                </span>
+            </a>
+
+            @foreach ($statuses as $status)
+                <a
+                    href="{{ route('ideas.index', ['status' => $status->value]) }}"
+                    class="button {{ $currentStatus === $status->value ? '' : 'button-outline' }}"
+                >
+                    {{ $status->label() }}
+
+                    <span class="pl-1 text-xs">
+                        {{ $statusCounts->get($status->value, 0) }}
+                    </span>
+                </a>
+            @endforeach
+        </div>
+
         @if ($ideas->isEmpty())
             <x-card class="mx-auto max-w-xl text-center">
                 <h2 class="text-lg font-semibold text-foreground">
-                    Aún no tienes ideas
+                    @if ($currentStatus)
+                        No hay ideas para este filtro
+                    @else
+                        Aún no tienes ideas
+                    @endif
                 </h2>
 
                 <p class="mt-2 text-muted">
-                    Cuando registres una idea, aparecerá en esta sección.
+                    @if ($currentStatus)
+                        Prueba seleccionando otro estado o revisa todas tus ideas.
+                    @else
+                        Cuando registres una idea, aparecerá en esta sección.
+                    @endif
                 </p>
 
-                <a href="/ideas/create" class="button mt-6">
-                    Crear idea
-                </a>
+                @if ($currentStatus)
+                    <a href="{{ route('ideas.index') }}" class="button mt-6">
+                        Ver todas
+                    </a>
+                @else
+                    <a href="/ideas/create" class="button mt-6">
+                        Crear idea
+                    </a>
+                @endif
             </x-card>
         @else
             <div class="grid gap-6 md:grid-cols-2">
