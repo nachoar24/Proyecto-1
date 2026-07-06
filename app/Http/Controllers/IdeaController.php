@@ -53,11 +53,9 @@ class IdeaController extends Controller
 
     public function show(Idea $idea)
     {
-        Gate::authorize('update', $idea);
-
-        return view('ideas.show', [
-            'idea' => $idea,
-        ]);
+    return view('ideas.show', [
+        'idea' => $idea,
+    ]);
     }
 
     public function edit(Idea $idea)
@@ -84,10 +82,9 @@ class IdeaController extends Controller
 
     public function destroy(Idea $idea)
     {
-        Gate::authorize('update', $idea);
+    $idea->delete();
 
-        $idea->delete();
-
-        return redirect('/ideas');
+    return to_route('ideas.index')
+        ->with('success', 'La idea fue eliminada correctamente.');
     }
 }
