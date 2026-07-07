@@ -23,3 +23,7 @@
     --color-primary-foreground: #052e16;
     --color-danger: #ef4444;
 }
+
+[x-cloak] {
+    display: none !important;
+}

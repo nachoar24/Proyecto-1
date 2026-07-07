@@ -7,7 +7,7 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 5173,
         strictPort: true,
-        origin: 'http://lfs.isw811.xyz:5173',
+        cors: true,
         hmr: {
             host: 'lfs.isw811.xyz',
             port: 5173,
