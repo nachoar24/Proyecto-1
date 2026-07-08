@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\IdeaRequest;
+use App\Http\Requests\StoreIdeaRequest;
 use App\Models\Idea;
 use App\Notifications\IdeaPublished;
 use Illuminate\Support\Facades\Gate;
@@ -13,23 +14,22 @@ class IdeaController extends Controller
 {
     public function index(Request $request)
     {
-    $status = $request->query('status');
+        $user = $request->user();
 
-    if (! in_array($status, IdeaStatus::values(), true)) {
-        $status = null;
-    }
-
-    $user = $request->user();
-
-    return view('ideas.index', [
-        'ideas' => $user->ideas()
-            ->when($status, fn ($query) => $query->where('status', $status))
-            ->latest()
-            ->get(),
-        'statuses' => IdeaStatus::cases(),
-        'statusCounts' => Idea::statusCounts($user),
-        'currentStatus' => $status,
-    ]);
+        return view('ideas.index', [
+            'ideas' => $user->ideas()
+                ->when(
+                    in_array($request->query('status'), IdeaStatus::values(), true),
+                    fn($query) => $query->where('status', $request->query('status'))
+                )
+                ->latest()
+                ->get(),
+            'statuses' => IdeaStatus::cases(),
+            'statusCounts' => Idea::statusCounts($user),
+            'currentStatus' => in_array($request->query('status'), IdeaStatus::values(), true)
+                ? $request->query('status')
+                : null,
+        ]);
     }
 
     public function create()
@@ -37,25 +37,21 @@ class IdeaController extends Controller
         return view('ideas.create');
     }
 
-    public function store(IdeaRequest $request)
+    public function store(StoreIdeaRequest $request)
     {
-        $validated = $request->validated();
+        $request->user()
+            ->ideas()
+            ->create($request->validated());
 
-        $idea = auth()->user()->ideas()->create([
-            'description' => $validated['description'],
-            'state' => 'pending',
-        ]);
-
-        auth()->user()->notify(new IdeaPublished($idea));
-
-        return redirect('/ideas');
+        return to_route('ideas.index')
+            ->with('success', 'La idea fue creada correctamente.');
     }
 
     public function show(Idea $idea)
     {
-    return view('ideas.show', [
-        'idea' => $idea,
-    ]);
+        return view('ideas.show', [
+            'idea' => $idea,
+        ]);
     }
 
     public function edit(Idea $idea)
@@ -77,14 +73,14 @@ class IdeaController extends Controller
             'description' => $validated['description'],
         ]);
 
-        return redirect('/ideas/'.$idea->id);
+        return redirect('/ideas/' . $idea->id);
     }
 
     public function destroy(Idea $idea)
     {
-    $idea->delete();
+        $idea->delete();
 
-    return to_route('ideas.index')
-        ->with('success', 'La idea fue eliminada correctamente.');
+        return to_route('ideas.index')
+            ->with('success', 'La idea fue eliminada correctamente.');
     }
 }
