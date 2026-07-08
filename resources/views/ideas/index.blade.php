@@ -112,8 +112,64 @@
         @endif
     </div>
     <x-modal name="create-idea" title="Nueva idea">
-        <p class="text-sm leading-6 text-muted">
-            El formulario para crear ideas se construirá en el siguiente episodio.
-        </p>
+        <form
+            method="POST"
+            action="{{ route('ideas.store') }}"
+            x-data="{ status: @js(old('status', \App\Enums\IdeaStatus::Pending->value)) }"
+            class="space-y-6">
+            @csrf
+
+            <x-forms.field
+                label="Título"
+                name="title"
+                placeholder="Ingresa el título de tu idea"
+                required
+                autofocus />
+
+            <x-forms.field
+                label="Descripción"
+                name="description"
+                type="textarea"
+                placeholder="Describe brevemente tu idea" />
+
+            <div class="space-y-2">
+                <label for="status" class="label">
+                    Estado
+                </label>
+
+                <div class="grid gap-3 sm:grid-cols-3">
+                    @foreach (\App\Enums\IdeaStatus::cases() as $status)
+                    <button
+                        type="button"
+                        x-on:click="status = @js($status->value)"
+                        x-bind:class="{ 'button-outline': status !== @js($status->value) }"
+                        class="button h-12">
+                        {{ $status->label() }}
+                    </button>
+                    @endforeach
+                </div>
+
+                <input
+                    id="status"
+                    name="status"
+                    type="hidden"
+                    x-bind:value="status">
+
+                <x-forms.error name="status" />
+            </div>
+
+            <footer class="flex items-center justify-end gap-3 pt-4">
+                <button
+                    type="button"
+                    class="button button-outline"
+                    x-on:click="$dispatch('close-modal')">
+                    Cancelar
+                </button>
+
+                <button type="submit" class="button">
+                    Crear idea
+                </button>
+            </footer>
+        </form>
     </x-modal>
 </x-layout>

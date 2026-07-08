@@ -1,25 +1,31 @@
 @props([
-    'label',
+    'label' => null,
     'name',
     'type' => 'text',
 ])
 
 <div>
-    <label for="{{ $name }}" class="form-label">
-        {{ $label }}
-    </label>
+    @if ($label)
+        <label for="{{ $name }}" class="label">
+            {{ $label }}
+        </label>
+    @endif
 
-    <input
-        id="{{ $name }}"
-        name="{{ $name }}"
-        type="{{ $type }}"
-        value="{{ old($name) }}"
-        {{ $attributes->merge(['class' => 'form-input']) }}
-    >
+    @if ($type === 'textarea')
+        <textarea
+            id="{{ $name }}"
+            name="{{ $name }}"
+            {{ $attributes->merge(['class' => 'textarea min-h-32 w-full']) }}
+        >{{ old($name) }}</textarea>
+    @else
+        <input
+            id="{{ $name }}"
+            name="{{ $name }}"
+            type="{{ $type }}"
+            value="{{ old($name) }}"
+            {{ $attributes->merge(['class' => 'input w-full']) }}
+        >
+    @endif
 
-    @error($name)
-        <p class="form-error">
-            {{ $message }}
-        </p>
-    @enderror
+    <x-forms.error :name="$name" />
 </div>

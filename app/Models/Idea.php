@@ -41,15 +41,15 @@ class Idea extends Model
 
     public static function statusCounts(User $user): Collection
     {
-    $counts = $user->ideas()
-        ->selectRaw('status, count(*) as count')
-        ->groupBy('status')
-        ->pluck('count', 'status');
+        $counts = $user->ideas()
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
 
-    return collect(IdeaStatus::cases())
-        ->mapWithKeys(fn (IdeaStatus $status) => [
-            $status->value => $counts->get($status->value, 0),
-        ])
-        ->put('all', $user->ideas()->count());
+        return collect(IdeaStatus::cases())
+            ->mapWithKeys(fn (IdeaStatus $status) => [
+                $status->value => $counts->get($status->value, 0),
+            ])
+            ->put('all', $user->ideas()->count());
     }
 }

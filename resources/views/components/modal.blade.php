@@ -12,6 +12,7 @@
     x-show="show"
     x-cloak
     x-on:open-modal.window="if ($event.detail === modalName) show = true"
+    x-on:close-modal.window="show = false"
     x-on:keydown.escape.window="show = false"
     x-bind:aria-hidden="! show"
     x-transition:enter="duration-200 ease-out"
@@ -27,7 +28,7 @@
     tabindex="-1"
     x-on:click.self="show = false"
 >
-    <x-card class="relative w-full max-w-xl">
+    <x-card class="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto shadow-2xl">
         <header class="flex items-start justify-between gap-4">
             <h2 id="{{ $titleId }}" class="text-xl font-bold text-foreground">
                 {{ $title }}
