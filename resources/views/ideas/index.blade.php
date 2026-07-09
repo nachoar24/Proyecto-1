@@ -115,61 +115,133 @@
         <form
             method="POST"
             action="{{ route('ideas.store') }}"
-            x-data="{ status: @js(old('status', \App\Enums\IdeaStatus::Pending->value)) }"
-            class="space-y-6">
+            x-data="{
+        status: @js(old('status', \App\Enums\IdeaStatus::Pending->value)),
+        newLink: '',
+        links: @js(old('links', [])),
+    }"
+            data-test="create-idea-form"
+            class="space-y-6"
             @csrf
 
             <x-forms.field
-                label="Título"
-                name="title"
-                placeholder="Ingresa el título de tu idea"
-                required
-                autofocus />
+            label="Título"
+            name="title"
+            placeholder="Ingresa el título de tu idea"
+            required
+            autofocus />
 
-            <x-forms.field
-                label="Descripción"
-                name="description"
-                type="textarea"
-                placeholder="Describe brevemente tu idea" />
+        <x-forms.field
+            label="Descripción"
+            name="description"
+            type="textarea"
+            placeholder="Describe brevemente tu idea" />
 
-            <div class="space-y-2">
-                <label for="status" class="label">
-                    Estado
-                </label>
+        <fieldset class="space-y-3">
+            <legend class="label">
+                Enlaces
+            </legend>
 
-                <div class="grid gap-3 sm:grid-cols-3">
-                    @foreach (\App\Enums\IdeaStatus::cases() as $status)
-                    <button
-                        type="button"
-                        x-on:click="status = @js($status->value)"
-                        x-bind:class="{ 'button-outline': status !== @js($status->value) }"
-                        class="button h-12">
-                        {{ $status->label() }}
-                    </button>
-                    @endforeach
-                </div>
+            <div class="space-y-3">
+                <template x-for="(link, index) in links" :key="link">
+                    <div class="flex items-center gap-3">
+                        <label class="sr-only" :for="`link-${index}`">
+                            Enlace agregado
+                        </label>
 
-                <input
-                    id="status"
-                    name="status"
-                    type="hidden"
-                    x-bind:value="status">
+                        <input
+                            type="url"
+                            name="links[]"
+                            x-model="links[index]"
+                            :id="`link-${index}`"
+                            class="input flex-1"
+                            readonly>
 
-                <x-forms.error name="status" />
+                        <button
+                            type="button"
+                            class="button button-outline h-12 w-12 shrink-0 px-0 text-lg"
+                            x-on:click="links.splice(index, 1)"
+                            aria-label="Eliminar enlace">
+                            ×
+                        </button>
+                    </div>
+                </template>
             </div>
 
-            <footer class="flex items-center justify-end gap-3 pt-4">
+            <div class="flex items-center gap-3">
+                <label class="sr-only" for="new_link">
+                    Nuevo enlace
+                </label>
+
+                <input
+                    id="new_link"
+                    type="url"
+                    x-model.trim="newLink"
+                    x-on:keydown.enter.prevent="if (newLink.trim()) { links.push(newLink.trim()); newLink = '' }"
+                    placeholder="https://ejemplo.com"
+                    autocomplete="url"
+                    spellcheck="false"
+                    data-test="new-link-input"
+                    class="input flex-1">
+
                 <button
                     type="button"
-                    class="button button-outline"
-                    x-on:click="$dispatch('close-modal')">
-                    Cancelar
+                    class="button h-12 w-12 shrink-0 px-0 text-lg disabled:cursor-not-allowed disabled:opacity-50"
+                    x-bind:disabled="!newLink.trim()"
+                    x-on:click="if (newLink.trim()) { links.push(newLink.trim()); newLink = '' }"
+                    data-test="submit-new-link-button"
+                    aria-label="Agregar enlace">
+                    +
                 </button>
+            </div>
 
-                <button type="submit" class="button">
-                    Crear idea
+            <x-forms.error name="links" />
+
+            @error('links.*')
+            <p class="mt-2 text-sm text-red-400">
+                {{ $message }}
+            </p>
+            @enderror
+        </fieldset>
+
+        <div class="space-y-2">
+            <label for="status" class="label">
+                Estado
+            </label>
+
+            <div class="grid gap-3 sm:grid-cols-3">
+                @foreach (\App\Enums\IdeaStatus::cases() as $status)
+                <button
+                    type="button"
+                    x-on:click="status = @js($status->value)"
+                    x-bind:class="{ 'button-outline': status !== @js($status->value) }"
+                    class="button h-12">
+                    {{ $status->label() }}
                 </button>
-            </footer>
+                @endforeach
+            </div>
+
+            <input
+                id="status"
+                name="status"
+                type="hidden"
+                x-bind:value="status">
+
+            <x-forms.error name="status" />
+        </div>
+
+        <footer class="flex items-center justify-end gap-3 pt-4">
+            <button
+                type="button"
+                class="button button-outline"
+                x-on:click="$dispatch('close-modal')">
+                Cancelar
+            </button>
+
+            <button type="submit" class="button">
+                Crear idea
+            </button>
+        </footer>
         </form>
     </x-modal>
 </x-layout>

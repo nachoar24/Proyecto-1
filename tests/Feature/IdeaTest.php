@@ -93,3 +93,98 @@ it('ignores invalid status filters', function () {
     $response->assertSee('Idea pendiente');
     $response->assertSee('Idea completada');
 });
+
+it('creates a new idea', function () {
+    $user = User::factory()->create();
+
+    $title = 'Comprar una propiedad';
+    $description = 'Analizar opciones de inversión inmobiliaria.';
+
+    $links = [
+        'https://laracasts.com',
+        'https://laravel.com',
+    ];
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('ideas.store'), [
+            'title' => $title,
+            'description' => $description,
+            'status' => IdeaStatus::Completed->value,
+            'links' => $links,
+        ]);
+
+    $response
+        ->assertRedirect(route('ideas.index'))
+        ->assertSessionHas('success', 'La idea fue creada correctamente.');
+
+    $this->assertDatabaseHas('ideas', [
+        'user_id' => $user->id,
+        'title' => $title,
+        'description' => $description,
+        'status' => IdeaStatus::Completed->value,
+    ]);
+
+    expect($user->ideas()->count())->toBe(1);
+
+    $idea = $user->ideas()->first();
+
+    expect($idea)
+        ->not->toBeNull()
+        ->and($idea->title)->toBe($title)
+        ->and($idea->description)->toBe($description)
+        ->and($idea->status)->toBe(IdeaStatus::Completed);
+
+    expect($idea->links->getArrayCopy())->toBe($links);
+});
+
+it('requires a title when creating an idea', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('ideas.store'), [
+            'title' => '',
+            'description' => 'Descripción sin título.',
+            'status' => IdeaStatus::Pending->value,
+        ]);
+
+    $response->assertSessionHasErrors('title');
+
+    expect($user->ideas()->count())->toBe(0);
+});
+
+it('requires a valid status when creating an idea', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('ideas.store'), [
+            'title' => 'Idea con estado inválido',
+            'description' => 'Esta idea no debe guardarse.',
+            'status' => 'invalid-status',
+        ]);
+
+    $response->assertSessionHasErrors('status');
+
+    expect($user->ideas()->count())->toBe(0);
+});
+
+it('requires links to be valid urls when creating an idea', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('ideas.store'), [
+            'title' => 'Idea con enlace inválido',
+            'description' => 'Esta idea no debe guardarse con un enlace inválido.',
+            'status' => IdeaStatus::Pending->value,
+            'links' => [
+                'not-a-valid-url',
+            ],
+        ]);
+
+    $response->assertSessionHasErrors('links.0');
+
+    expect($user->ideas()->count())->toBe(0);
+});
