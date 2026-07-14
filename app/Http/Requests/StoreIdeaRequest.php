@@ -19,6 +19,7 @@ class StoreIdeaRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', Rule::in(IdeaStatus::values())],
+            'image' => ['nullable', 'image', 'max:5120'],
             'steps' => ['nullable', 'array'],
             'steps.*' => ['required', 'string', 'max:255'],
             'links' => ['nullable', 'array'],

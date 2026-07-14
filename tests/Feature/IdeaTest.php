@@ -4,6 +4,8 @@ use App\Enums\IdeaStatus;
 use App\Models\Idea;
 use App\Models\Step;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 it('belongs to a user', function () {
     $idea = Idea::factory()->create();
@@ -95,6 +97,8 @@ it('ignores invalid status filters', function () {
 });
 
 it('creates a new idea', function () {
+    Storage::fake('public');
+
     $user = User::factory()->create();
 
     $title = 'Comprar una propiedad';
@@ -110,6 +114,8 @@ it('creates a new idea', function () {
         'Comparar alternativas',
     ];
 
+    $image = UploadedFile::fake()->image('featured-image.jpg', 600, 400);
+
     $response = $this
         ->actingAs($user)
         ->post(route('ideas.store'), [
@@ -118,6 +124,7 @@ it('creates a new idea', function () {
             'status' => IdeaStatus::Completed->value,
             'links' => $links,
             'steps' => $steps,
+            'image' => $image,
         ]);
 
     $response
@@ -142,6 +149,11 @@ it('creates a new idea', function () {
         ->and($idea->status)->toBe(IdeaStatus::Completed);
 
     expect($idea->links->getArrayCopy())->toBe($links);
+
+    expect($idea->image_path)->not->toBeNull();
+    expect(str_starts_with($idea->image_path, 'ideas/'))->toBeTrue();
+
+    Storage::disk('public')->assertExists($idea->image_path);
 
     $idea->load('steps');
 
@@ -200,6 +212,27 @@ it('requires links to be valid urls when creating an idea', function () {
         ]);
 
     $response->assertSessionHasErrors('links.0');
+
+    expect($user->ideas()->count())->toBe(0);
+});
+
+it('requires the uploaded image to be an image file', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+
+    $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('ideas.store'), [
+            'title' => 'Idea con archivo inválido',
+            'description' => 'Esta idea no debe guardar un PDF como imagen.',
+            'status' => IdeaStatus::Pending->value,
+            'image' => $file,
+        ]);
+
+    $response->assertSessionHasErrors('image');
 
     expect($user->ideas()->count())->toBe(0);
 });

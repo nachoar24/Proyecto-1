@@ -41,7 +41,7 @@ class IdeaController extends Controller
     {
         $idea = $request->user()
             ->ideas()
-            ->create($request->safe()->except('steps'));
+            ->create($request->safe()->except('steps', 'image'));
 
         $steps = $request->safe()
             ->collect('steps')
@@ -53,6 +53,12 @@ class IdeaController extends Controller
 
         if ($steps->isNotEmpty()) {
             $idea->steps()->createMany($steps->all());
+        }
+
+        if ($request->hasFile('image')) {
+            $idea->update([
+                'image_path' => $request->file('image')->store('ideas', 'public'),
+            ]);
         }
 
         return to_route('ideas.index')
