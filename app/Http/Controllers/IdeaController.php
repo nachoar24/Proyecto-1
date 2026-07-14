@@ -39,9 +39,21 @@ class IdeaController extends Controller
 
     public function store(StoreIdeaRequest $request)
     {
-        $request->user()
+        $idea = $request->user()
             ->ideas()
-            ->create($request->validated());
+            ->create($request->safe()->except('steps'));
+
+        $steps = $request->safe()
+            ->collect('steps')
+            ->filter()
+            ->map(fn(string $step) => [
+                'description' => $step,
+            ])
+            ->values();
+
+        if ($steps->isNotEmpty()) {
+            $idea->steps()->createMany($steps->all());
+        }
 
         return to_route('ideas.index')
             ->with('success', 'La idea fue creada correctamente.');
@@ -49,6 +61,8 @@ class IdeaController extends Controller
 
     public function show(Idea $idea)
     {
+        $idea->load('steps');
+
         return view('ideas.show', [
             'idea' => $idea,
         ]);

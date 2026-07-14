@@ -14,13 +14,15 @@ class StoreIdeaRequest extends FormRequest
     }
 
     public function rules(): array
-{
-    return [
-        'title' => ['required', 'string', 'max:255'],
-        'description' => ['nullable', 'string'],
-        'status' => ['required', Rule::in(IdeaStatus::values())],
-        'links' => ['nullable', 'array'],
-        'links.*' => ['required', 'url', 'max:255'],
-    ];
-}
+    {
+        return [
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', Rule::in(IdeaStatus::values())],
+            'steps' => ['nullable', 'array'],
+            'steps.*' => ['required', 'string', 'max:255'],
+            'links' => ['nullable', 'array'],
+            'links.*' => ['required', 'url', 'max:255'],
+        ];
+    }
 }

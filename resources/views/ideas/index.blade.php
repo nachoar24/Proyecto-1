@@ -11,6 +11,7 @@
         </header>
         <x-card
             as="button"
+            data-test="create-idea-button"
             onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'create-idea' }))"
             class="flex h-28 w-full items-center justify-center text-center">
             <span class="text-lg font-semibold text-foreground">
@@ -114,134 +115,204 @@
     <x-modal name="create-idea" title="Nueva idea">
         <form
             method="POST"
-            action="{{ route('ideas.store') }}"
+            action="{{ route('ideas.store', [], false) }}"
             x-data="{
         status: @js(old('status', \App\Enums\IdeaStatus::Pending->value)),
+        newStep: '',
+        steps: @js(old('steps', [])),
         newLink: '',
         links: @js(old('links', [])),
     }"
             data-test="create-idea-form"
-            class="space-y-6"
+            class="space-y-6">
             @csrf
 
             <x-forms.field
-            label="Título"
-            name="title"
-            placeholder="Ingresa el título de tu idea"
-            required
-            autofocus />
+                label="Título"
+                name="title"
+                placeholder="Ingresa el título de tu idea"
+                required
+                autofocus />
 
-        <x-forms.field
-            label="Descripción"
-            name="description"
-            type="textarea"
-            placeholder="Describe brevemente tu idea" />
+            <x-forms.field
+                label="Descripción"
+                name="description"
+                type="textarea"
+                placeholder="Describe brevemente tu idea" />
 
-        <fieldset class="space-y-3">
-            <legend class="label">
-                Enlaces
-            </legend>
+            <fieldset class="space-y-3">
+                <legend class="label">
+                    Pasos accionables
+                </legend>
 
-            <div class="space-y-3">
-                <template x-for="(link, index) in links" :key="link">
-                    <div class="flex items-center gap-3">
-                        <label class="sr-only" :for="`link-${index}`">
-                            Enlace agregado
-                        </label>
+                <div class="space-y-3">
+                    <template x-for="(step, index) in steps" :key="`step-${index}-${step}`">
+                        <div class="flex items-center gap-3">
+                            <label class="sr-only" :for="`step-${index}`">
+                                Paso accionable agregado
+                            </label>
 
-                        <input
-                            type="url"
-                            name="links[]"
-                            x-model="links[index]"
-                            :id="`link-${index}`"
-                            class="input flex-1"
-                            readonly>
+                            <input
+                                type="text"
+                                name="steps[]"
+                                x-model="steps[index]"
+                                :id="`step-${index}`"
+                                class="input flex-1"
+                                readonly>
 
-                        <button
-                            type="button"
-                            class="button button-outline h-12 w-12 shrink-0 px-0 text-lg"
-                            x-on:click="links.splice(index, 1)"
-                            aria-label="Eliminar enlace">
-                            ×
-                        </button>
-                    </div>
-                </template>
-            </div>
+                            <button
+                                type="button"
+                                class="button button-outline h-12 w-12 shrink-0 px-0 text-lg"
+                                x-on:click="steps.splice(index, 1)"
+                                data-test="remove-step-button"
+                                aria-label="Eliminar paso">
+                                ×
+                            </button>
+                        </div>
+                    </template>
+                </div>
 
-            <div class="flex items-center gap-3">
-                <label class="sr-only" for="new_link">
-                    Nuevo enlace
+                <div class="flex items-center gap-3">
+                    <label class="sr-only" for="new_step">
+                        Nuevo paso accionable
+                    </label>
+
+                    <input
+                        id="new_step"
+                        type="text"
+                        x-model.trim="newStep"
+                        x-on:keydown.enter.prevent="if (newStep.trim()) { steps.push(newStep.trim()); newStep = '' }"
+                        placeholder="¿Qué se debe hacer?"
+                        autocomplete="off"
+                        spellcheck="false"
+                        data-test="new-step-input"
+                        class="input flex-1">
+
+                    <button
+                        type="button"
+                        class="button h-12 w-12 shrink-0 px-0 text-lg disabled:cursor-not-allowed disabled:opacity-50"
+                        x-bind:disabled="!newStep.trim()"
+                        x-on:click="if (newStep.trim()) { steps.push(newStep.trim()); newStep = '' }"
+                        data-test="submit-new-step-button"
+                        aria-label="Agregar paso">
+                        +
+                    </button>
+                </div>
+
+                <x-forms.error name="steps" />
+
+                @error('steps.*')
+                <p class="mt-2 text-sm text-red-400">
+                    {{ $message }}
+                </p>
+                @enderror
+            </fieldset>
+
+            <fieldset class="space-y-3">
+                <legend class="label">
+                    Enlaces
+                </legend>
+
+                <div class="space-y-3">
+                    <template x-for="(link, index) in links" :key="link">
+                        <div class="flex items-center gap-3">
+                            <label class="sr-only" :for="`link-${index}`">
+                                Enlace agregado
+                            </label>
+
+                            <input
+                                type="url"
+                                name="links[]"
+                                x-model="links[index]"
+                                :id="`link-${index}`"
+                                class="input flex-1"
+                                readonly>
+
+                            <button
+                                type="button"
+                                class="button button-outline h-12 w-12 shrink-0 px-0 text-lg"
+                                x-on:click="links.splice(index, 1)"
+                                aria-label="Eliminar enlace">
+                                ×
+                            </button>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <label class="sr-only" for="new_link">
+                        Nuevo enlace
+                    </label>
+
+                    <input
+                        id="new_link"
+                        type="url"
+                        x-model.trim="newLink"
+                        x-on:keydown.enter.prevent="if (newLink.trim()) { links.push(newLink.trim()); newLink = '' }"
+                        placeholder="https://ejemplo.com"
+                        autocomplete="url"
+                        spellcheck="false"
+                        data-test="new-link-input"
+                        class="input flex-1">
+
+                    <button
+                        type="button"
+                        class="button h-12 w-12 shrink-0 px-0 text-lg disabled:cursor-not-allowed disabled:opacity-50"
+                        x-bind:disabled="!newLink.trim()"
+                        x-on:click="if (newLink.trim()) { links.push(newLink.trim()); newLink = '' }"
+                        data-test="submit-new-link-button"
+                        aria-label="Agregar enlace">
+                        +
+                    </button>
+                </div>
+
+                <x-forms.error name="links" />
+
+                @error('links.*')
+                <p class="mt-2 text-sm text-red-400">
+                    {{ $message }}
+                </p>
+                @enderror
+            </fieldset>
+
+            <div class="space-y-2">
+                <label for="status" class="label">
+                    Estado
                 </label>
 
+                <div class="grid gap-3 sm:grid-cols-3">
+                    @foreach (\App\Enums\IdeaStatus::cases() as $status)
+                    <button
+                        type="button"
+                        x-on:click="status = @js($status->value)"
+                        x-bind:class="{ 'button-outline': status !== @js($status->value) }"
+                        class="button h-12">
+                        {{ $status->label() }}
+                    </button>
+                    @endforeach
+                </div>
+
                 <input
-                    id="new_link"
-                    type="url"
-                    x-model.trim="newLink"
-                    x-on:keydown.enter.prevent="if (newLink.trim()) { links.push(newLink.trim()); newLink = '' }"
-                    placeholder="https://ejemplo.com"
-                    autocomplete="url"
-                    spellcheck="false"
-                    data-test="new-link-input"
-                    class="input flex-1">
+                    id="status"
+                    name="status"
+                    type="hidden"
+                    x-bind:value="status">
 
-                <button
-                    type="button"
-                    class="button h-12 w-12 shrink-0 px-0 text-lg disabled:cursor-not-allowed disabled:opacity-50"
-                    x-bind:disabled="!newLink.trim()"
-                    x-on:click="if (newLink.trim()) { links.push(newLink.trim()); newLink = '' }"
-                    data-test="submit-new-link-button"
-                    aria-label="Agregar enlace">
-                    +
-                </button>
+                <x-forms.error name="status" />
             </div>
 
-            <x-forms.error name="links" />
-
-            @error('links.*')
-            <p class="mt-2 text-sm text-red-400">
-                {{ $message }}
-            </p>
-            @enderror
-        </fieldset>
-
-        <div class="space-y-2">
-            <label for="status" class="label">
-                Estado
-            </label>
-
-            <div class="grid gap-3 sm:grid-cols-3">
-                @foreach (\App\Enums\IdeaStatus::cases() as $status)
+            <footer class="flex items-center justify-end gap-3 pt-4">
                 <button
                     type="button"
-                    x-on:click="status = @js($status->value)"
-                    x-bind:class="{ 'button-outline': status !== @js($status->value) }"
-                    class="button h-12">
-                    {{ $status->label() }}
+                    class="button button-outline"
+                    x-on:click="$dispatch('close-modal')">
+                    Cancelar
                 </button>
-                @endforeach
-            </div>
 
-            <input
-                id="status"
-                name="status"
-                type="hidden"
-                x-bind:value="status">
-
-            <x-forms.error name="status" />
-        </div>
-
-        <footer class="flex items-center justify-end gap-3 pt-4">
-            <button
-                type="button"
-                class="button button-outline"
-                x-on:click="$dispatch('close-modal')">
-                Cancelar
-            </button>
-
-            <button type="submit" class="button">
-                Crear idea
-            </button>
-        </footer>
+                <button type="submit" class="button">
+                    Crear idea
+                </button>
+            </footer>
         </form>
     </x-modal>
 </x-layout>

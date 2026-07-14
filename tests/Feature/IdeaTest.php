@@ -105,6 +105,11 @@ it('creates a new idea', function () {
         'https://laravel.com',
     ];
 
+    $steps = [
+        'Investigar opciones',
+        'Comparar alternativas',
+    ];
+
     $response = $this
         ->actingAs($user)
         ->post(route('ideas.store'), [
@@ -112,6 +117,7 @@ it('creates a new idea', function () {
             'description' => $description,
             'status' => IdeaStatus::Completed->value,
             'links' => $links,
+            'steps' => $steps,
         ]);
 
     $response
@@ -136,6 +142,15 @@ it('creates a new idea', function () {
         ->and($idea->status)->toBe(IdeaStatus::Completed);
 
     expect($idea->links->getArrayCopy())->toBe($links);
+
+    $idea->load('steps');
+
+    expect($idea->steps)
+        ->toHaveCount(2)
+        ->and($idea->steps->pluck('description')->all())
+        ->toBe($steps)
+        ->and($idea->steps->pluck('completed')->all())
+        ->toBe([false, false]);
 });
 
 it('requires a title when creating an idea', function () {
@@ -187,4 +202,33 @@ it('requires links to be valid urls when creating an idea', function () {
     $response->assertSessionHasErrors('links.0');
 
     expect($user->ideas()->count())->toBe(0);
+});
+
+it('toggles a step completion status', function () {
+    $user = User::factory()->create();
+
+    $idea = Idea::factory()
+        ->for($user)
+        ->create();
+
+    $step = $idea->steps()->create([
+        'description' => 'Investigar opciones',
+        'completed' => false,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->from(route('ideas.show', $idea))
+        ->patch(route('steps.update', $step))
+        ->assertRedirect(route('ideas.show', $idea));
+
+    expect($step->refresh()->completed)->toBeTrue();
+
+    $this
+        ->actingAs($user)
+        ->from(route('ideas.show', $idea))
+        ->patch(route('steps.update', $step))
+        ->assertRedirect(route('ideas.show', $idea));
+
+    expect($step->refresh()->completed)->toBeFalse();
 });

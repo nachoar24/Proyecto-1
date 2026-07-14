@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\IdeaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StepController;
 
 Route::get('/', function () {
     return redirect('/ideas');
@@ -30,6 +31,9 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/ideas/{idea}', [IdeaController::class, 'destroy'])
         ->name('ideas.destroy');
+
+    Route::patch('/steps/{step}', [StepController::class, 'update'])
+        ->name('steps.update');
 
     Route::get('/admin', function () {
         return view('admin.index');
