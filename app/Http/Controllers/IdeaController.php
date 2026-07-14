@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateIdea;
+use App\Enums\IdeaStatus;
 use App\Http\Requests\IdeaRequest;
 use App\Http\Requests\StoreIdeaRequest;
 use App\Models\Idea;
-use App\Notifications\IdeaPublished;
-use Illuminate\Support\Facades\Gate;
-use App\Enums\IdeaStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class IdeaController extends Controller
 {
@@ -20,7 +20,7 @@ class IdeaController extends Controller
             'ideas' => $user->ideas()
                 ->when(
                     in_array($request->query('status'), IdeaStatus::values(), true),
-                    fn($query) => $query->where('status', $request->query('status'))
+                    fn ($query) => $query->where('status', $request->query('status'))
                 )
                 ->latest()
                 ->get(),
@@ -37,29 +37,9 @@ class IdeaController extends Controller
         return view('ideas.create');
     }
 
-    public function store(StoreIdeaRequest $request)
+    public function store(StoreIdeaRequest $request, CreateIdea $createIdea)
     {
-        $idea = $request->user()
-            ->ideas()
-            ->create($request->safe()->except('steps', 'image'));
-
-        $steps = $request->safe()
-            ->collect('steps')
-            ->filter()
-            ->map(fn(string $step) => [
-                'description' => $step,
-            ])
-            ->values();
-
-        if ($steps->isNotEmpty()) {
-            $idea->steps()->createMany($steps->all());
-        }
-
-        if ($request->hasFile('image')) {
-            $idea->update([
-                'image_path' => $request->file('image')->store('ideas', 'public'),
-            ]);
-        }
+        $createIdea->handle($request->safe()->all());
 
         return to_route('ideas.index')
             ->with('success', 'La idea fue creada correctamente.');
@@ -93,7 +73,7 @@ class IdeaController extends Controller
             'description' => $validated['description'],
         ]);
 
-        return redirect('/ideas/' . $idea->id);
+        return redirect('/ideas/'.$idea->id);
     }
 
     public function destroy(Idea $idea)
