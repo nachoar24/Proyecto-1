@@ -47,6 +47,8 @@ class IdeaController extends Controller
 
     public function show(Idea $idea)
     {
+        Gate::authorize('workWith', $idea);
+
         $idea->load('steps');
 
         return view('ideas.show', [
@@ -56,7 +58,7 @@ class IdeaController extends Controller
 
     public function edit(Idea $idea)
     {
-        Gate::authorize('update', $idea);
+        Gate::authorize('workWith', $idea);
 
         return view('ideas.edit', [
             'idea' => $idea,
@@ -65,7 +67,7 @@ class IdeaController extends Controller
 
     public function update(IdeaRequest $request, Idea $idea)
     {
-        Gate::authorize('update', $idea);
+        Gate::authorize('workWith', $idea);
 
         $validated = $request->validated();
 
@@ -78,6 +80,8 @@ class IdeaController extends Controller
 
     public function destroy(Idea $idea)
     {
+        Gate::authorize('workWith', $idea);
+
         $idea->delete();
 
         return to_route('ideas.index')

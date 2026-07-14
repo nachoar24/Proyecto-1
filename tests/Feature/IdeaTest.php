@@ -237,6 +237,58 @@ it('requires the uploaded image to be an image file', function () {
     expect($user->ideas()->count())->toBe(0);
 });
 
+it('requires authentication to view an idea', function () {
+    $idea = Idea::factory()->create();
+
+    $this
+        ->get(route('ideas.show', $idea))
+        ->assertRedirect(route('login'));
+});
+
+it('prevents users from viewing ideas they did not create', function () {
+    $user = User::factory()->create();
+
+    $idea = Idea::factory()->create([
+        'title' => 'Idea privada de otro usuario',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('ideas.show', $idea))
+        ->assertForbidden();
+});
+
+it('allows users to view their own ideas', function () {
+    $user = User::factory()->create();
+
+    $idea = Idea::factory()
+        ->for($user)
+        ->create([
+            'title' => 'Idea autorizada',
+        ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('ideas.show', $idea))
+        ->assertOk()
+        ->assertSee('Idea autorizada');
+});
+
+it('prevents users from deleting ideas they did not create', function () {
+    $user = User::factory()->create();
+
+    $idea = Idea::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->delete(route('ideas.destroy', $idea))
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('ideas', [
+        'id' => $idea->id,
+    ]);
+});
+
 it('toggles a step completion status', function () {
     $user = User::factory()->create();
 
@@ -262,6 +314,25 @@ it('toggles a step completion status', function () {
         ->from(route('ideas.show', $idea))
         ->patch(route('steps.update', $step))
         ->assertRedirect(route('ideas.show', $idea));
+
+    expect($step->refresh()->completed)->toBeFalse();
+});
+
+it('prevents users from toggling steps for ideas they did not create', function () {
+    $user = User::factory()->create();
+
+    $idea = Idea::factory()->create();
+
+    $step = $idea->steps()->create([
+        'description' => 'Paso privado',
+        'completed' => false,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->from(route('ideas.index'))
+        ->patch(route('steps.update', $step))
+        ->assertForbidden();
 
     expect($step->refresh()->completed)->toBeFalse();
 });
