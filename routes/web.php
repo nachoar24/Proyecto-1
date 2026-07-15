@@ -3,8 +3,9 @@
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\IdeaController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StepController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect('/ideas');
@@ -34,6 +35,12 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/steps/{step}', [StepController::class, 'update'])
         ->name('steps.update');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
 
     Route::get('/admin', function () {
         return view('admin.index');
