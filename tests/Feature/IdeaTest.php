@@ -114,7 +114,11 @@ it('creates a new idea', function () {
         'Comparar alternativas',
     ];
 
-    $image = UploadedFile::fake()->image('featured-image.jpg', 600, 400);
+    $image = UploadedFile::fake()->image(
+        'featured-image.jpg',
+        600,
+        400
+    );
 
     $response = $this
         ->actingAs($user)
@@ -129,7 +133,10 @@ it('creates a new idea', function () {
 
     $response
         ->assertRedirect(route('ideas.index'))
-        ->assertSessionHas('success', 'La idea fue creada correctamente.');
+        ->assertSessionHas(
+            'success',
+            'La idea fue creada correctamente.'
+        );
 
     $this->assertDatabaseHas('ideas', [
         'user_id' => $user->id,
@@ -221,7 +228,11 @@ it('requires the uploaded image to be an image file', function () {
 
     $user = User::factory()->create();
 
-    $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+    $file = UploadedFile::fake()->create(
+        'document.pdf',
+        100,
+        'application/pdf'
+    );
 
     $response = $this
         ->actingAs($user)
@@ -272,6 +283,53 @@ it('allows users to view their own ideas', function () {
         ->get(route('ideas.show', $idea))
         ->assertOk()
         ->assertSee('Idea autorizada');
+});
+
+it('renders the edit idea modal with the existing idea values', function () {
+    $user = User::factory()->create();
+
+    $idea = Idea::factory()
+        ->for($user)
+        ->create([
+            'title' => 'Idea que será editada',
+            'description' => 'Descripción original de la idea.',
+            'status' => IdeaStatus::InProgress,
+            'links' => [
+                'https://laravel.com',
+            ],
+        ]);
+
+    $idea->steps()->create([
+        'description' => 'Paso existente',
+        'completed' => false,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('ideas.show', $idea));
+
+    $response
+        ->assertOk()
+        ->assertSee(
+            'data-test="edit-idea-button"',
+            false
+        )
+        ->assertSee(
+            'data-test="edit-idea-form"',
+            false
+        )
+        ->assertSee(
+            'action="'.route('ideas.update', $idea, false).'"',
+            false
+        )
+        ->assertSee(
+            'value="Idea que será editada"',
+            false
+        )
+        ->assertSee('Descripción original de la idea.')
+        ->assertSee('Paso existente')
+        ->assertSee('https://laravel.com')
+        ->assertSee('Actualizar idea');
 });
 
 it('prevents users from deleting ideas they did not create', function () {

@@ -1,21 +1,42 @@
 <x-layout :title="$idea->title">
     <div class="mx-auto max-w-3xl space-y-8">
+        @if ($idea->image_path)
+            <div class="overflow-hidden rounded-2xl border border-border">
+                <img
+                    src="{{ asset('storage/' . $idea->image_path) }}"
+                    alt="Imagen destacada de {{ $idea->title }}"
+                    class="h-auto w-full object-cover"
+                >
+            </div>
+        @endif
+
         <div class="flex items-center justify-between gap-4">
             <a
                 href="{{ route('ideas.index') }}"
                 class="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-foreground"
             >
                 <x-icons.arrow-left />
+
                 Volver a ideas
             </a>
 
             <div class="flex items-center gap-3">
-                <a href="#" class="button button-outline inline-flex items-center gap-2">
+                <button
+                    type="button"
+                    x-data
+                    x-on:click="$dispatch('open-modal', 'edit-idea')"
+                    data-test="edit-idea-button"
+                    class="button button-outline inline-flex items-center gap-2"
+                >
                     Editar idea
-                    <x-icons.external-link />
-                </a>
 
-                <form method="POST" action="{{ route('ideas.destroy', $idea) }}">
+                    <x-icons.external-link />
+                </button>
+
+                <form
+                    method="POST"
+                    action="{{ route('ideas.destroy', $idea) }}"
+                >
                     @csrf
                     @method('DELETE')
 
@@ -113,4 +134,6 @@
             </section>
         @endif
     </div>
+
+    <x-idea.modal :idea="$idea" />
 </x-layout>
