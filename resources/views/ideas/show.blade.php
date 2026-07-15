@@ -67,8 +67,11 @@
 
         @if ($idea->description)
             <x-card>
-                <div class="max-w-none text-sm leading-7 text-muted">
-                    {{ $idea->description }}
+                <div
+                    class="prose prose-invert max-w-none prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                    data-test="formatted-idea-description"
+                >
+                    {!! $idea->formatted_description !!}
                 </div>
             </x-card>
         @endif

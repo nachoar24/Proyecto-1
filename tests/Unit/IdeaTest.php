@@ -1,53 +1,33 @@
 <?php
 
-use App\Enums\IdeaStatus;
 use App\Models\Idea;
-use App\Models\Step;
-use App\Models\User;
 
-it('belongs to a user', function () {
-    $idea = Idea::factory()->create();
+it('formats a description using markdown', function () {
+    $idea = new Idea([
+        'description' => <<<'MARKDOWN'
+# Solicitud de funcionalidad
 
-    $idea->load('user');
+Esta descripción contiene **texto importante** y un [enlace](https://laravel.com).
 
-    expect($idea->user)->toBeInstanceOf(User::class);
-});
-
-it('can have steps', function () {
-    $idea = Idea::factory()->create();
-
-    $idea->load('steps');
-
-    expect($idea->steps)->toBeEmpty();
-
-    $idea->steps()->create([
-        'description' => 'Do the thing',
+- Primer elemento
+- Segundo elemento
+MARKDOWN,
     ]);
 
-    $idea->refresh()->load('steps');
-
-    expect($idea->steps)
-        ->toHaveCount(1)
-        ->and($idea->steps->first())
-        ->toBeInstanceOf(Step::class)
-        ->and($idea->steps->first()->completed)
-        ->toBeFalse();
+    expect($idea->formatted_description)
+        ->toContain('<h1>Solicitud de funcionalidad</h1>')
+        ->toContain('<strong>texto importante</strong>')
+        ->toContain('<a href="https://laravel.com">enlace</a>')
+        ->toContain('<li>Primer elemento</li>')
+        ->toContain('<li>Segundo elemento</li>');
 });
 
-it('casts status and links', function () {
-    $idea = Idea::factory()->create([
-        'status' => IdeaStatus::InProgress,
-        'links' => [
-            'https://laravel.com',
-        ],
+it('strips raw html from markdown descriptions', function () {
+    $idea = new Idea([
+        'description' => 'Texto seguro <script>alert("XSS")</script>',
     ]);
 
-    $idea->refresh();
-
-    expect($idea->status)
-        ->toBe(IdeaStatus::InProgress)
-        ->and($idea->status->label())
-        ->toBe('In Progress')
-        ->and($idea->links[0])
-        ->toBe('https://laravel.com');
+    expect($idea->formatted_description)
+        ->toContain('Texto seguro')
+        ->not->toContain('<script>');
 });

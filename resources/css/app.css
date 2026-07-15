@@ -12,6 +12,8 @@
     themes: dracula --default;
 }
 
+@plugin "@tailwindcss/typography";
+
 @theme {
     --color-background: #0f172a;
     --color-foreground: #f8fafc;

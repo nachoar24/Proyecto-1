@@ -4,11 +4,13 @@ namespace App\Models;
 
 use App\Enums\IdeaStatus;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class Idea extends Model
 {
@@ -27,6 +29,19 @@ class Idea extends Model
             'links' => AsArrayObject::class,
             'status' => IdeaStatus::class,
         ];
+    }
+
+    protected function formattedDescription(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes): string => Str::markdown(
+                $attributes['description'] ?? '',
+                [
+                    'html_input' => 'strip',
+                    'allow_unsafe_links' => false,
+                ]
+            ),
+        );
     }
 
     public function user(): BelongsTo
