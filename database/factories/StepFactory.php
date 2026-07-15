@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Idea;
+use App\Models\Step;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Step>
+ * @extends Factory<Step>
  */
 class StepFactory extends Factory
 {
