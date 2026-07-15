@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Idea;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 class CreateIdea
@@ -18,11 +19,17 @@ class CreateIdea
     {
         return DB::transaction(function () use ($attributes) {
             $data = collect($attributes)
-                ->only(['title', 'description', 'status', 'links'])
+                ->only([
+                    'title',
+                    'description',
+                    'status',
+                    'links',
+                ])
                 ->toArray();
 
-            if ($attributes['image'] ?? false) {
-                $data['image_path'] = $attributes['image']->store('ideas', 'public');
+            if (($attributes['image'] ?? null) instanceof UploadedFile) {
+                $data['image_path'] = $attributes['image']
+                    ->store('ideas', 'public');
             }
 
             $idea = $this->user
@@ -30,9 +37,14 @@ class CreateIdea
                 ->create($data);
 
             $steps = collect($attributes['steps'] ?? [])
-                ->filter()
-                ->map(fn (string $step) => [
-                    'description' => $step,
+                ->filter(
+                    fn (array $step) => filled(
+                        $step['description'] ?? null
+                    )
+                )
+                ->map(fn (array $step) => [
+                    'description' => $step['description'],
+                    'completed' => (bool) ($step['completed'] ?? false),
                 ])
                 ->values();
 

@@ -47,12 +47,43 @@
             : \App\Enums\IdeaStatus::Pending->value
     );
 
-    $initialSteps = old(
+    $rawInitialSteps = old(
         'steps',
         $editing
-            ? $idea->steps->pluck('description')->values()->all()
+            ? $idea->steps
+                ->map(fn ($step) => [
+                    'id' => $step->id,
+                    'description' => $step->description,
+                    'completed' => $step->completed,
+                ])
+                ->values()
+                ->all()
             : []
     );
+
+    $initialSteps = collect($rawInitialSteps)
+        ->map(function ($step, $index) {
+            if (is_string($step)) {
+                return [
+                    '_key' => 'step-' . $index . '-' . \Illuminate\Support\Str::uuid(),
+                    'description' => $step,
+                    'completed' => false,
+                ];
+            }
+
+            return [
+                '_key' => isset($step['id'])
+                    ? 'existing-step-' . $step['id']
+                    : 'step-' . $index . '-' . \Illuminate\Support\Str::uuid(),
+                'description' => $step['description'] ?? '',
+                'completed' => filter_var(
+                    $step['completed'] ?? false,
+                    FILTER_VALIDATE_BOOL
+                ),
+            ];
+        })
+        ->values()
+        ->all();
 
     $initialLinks = old(
         'links',
@@ -73,6 +104,22 @@
             steps: @js($initialSteps),
             newLink: '',
             links: @js($initialLinks),
+
+            addStep() {
+                const description = this.newStep.trim();
+
+                if (! description) {
+                    return;
+                }
+
+                this.steps.push({
+                    _key: `${Date.now()}-${Math.random()}`,
+                    description: description,
+                    completed: false,
+                });
+
+                this.newStep = '';
+            },
         }"
         data-test="{{ $formTest }}"
         class="space-y-6"
@@ -156,23 +203,28 @@
             <div class="space-y-3">
                 <template
                     x-for="(step, index) in steps"
-                    :key="`step-${index}-${step}`"
+                    :key="step._key"
                 >
                     <div class="flex items-center gap-3">
                         <label
                             class="sr-only"
                             :for="`{{ $modalName }}-step-${index}`"
                         >
-                            Paso accionable agregado
+                            Paso accionable
                         </label>
 
                         <input
                             type="text"
-                            name="steps[]"
-                            x-model="steps[index]"
+                            x-model="step.description"
+                            x-bind:name="`steps[${index}][description]`"
                             :id="`{{ $modalName }}-step-${index}`"
                             class="input flex-1"
-                            readonly
+                        >
+
+                        <input
+                            type="hidden"
+                            x-bind:name="`steps[${index}][completed]`"
+                            x-bind:value="step.completed ? 1 : 0"
                         >
 
                         <button
@@ -197,7 +249,7 @@
                     id="{{ $newStepId }}"
                     type="text"
                     x-model.trim="newStep"
-                    x-on:keydown.enter.prevent="if (newStep.trim()) { steps.push(newStep.trim()); newStep = '' }"
+                    x-on:keydown.enter.prevent="addStep()"
                     placeholder="¿Qué se debe hacer?"
                     autocomplete="off"
                     spellcheck="false"
@@ -209,7 +261,7 @@
                     type="button"
                     class="button h-12 w-12 shrink-0 px-0 text-lg disabled:cursor-not-allowed disabled:opacity-50"
                     x-bind:disabled="!newStep.trim()"
-                    x-on:click="if (newStep.trim()) { steps.push(newStep.trim()); newStep = '' }"
+                    x-on:click="addStep()"
                     data-test="submit-new-step-button"
                     aria-label="Agregar paso"
                 >
@@ -219,7 +271,13 @@
 
             <x-forms.error name="steps" />
 
-            @error('steps.*')
+            @error('steps.*.description')
+                <p class="mt-2 text-sm text-red-400">
+                    {{ $message }}
+                </p>
+            @enderror
+
+            @error('steps.*.completed')
                 <p class="mt-2 text-sm text-red-400">
                     {{ $message }}
                 </p>
@@ -274,7 +332,12 @@
                     id="{{ $newLinkId }}"
                     type="url"
                     x-model.trim="newLink"
-                    x-on:keydown.enter.prevent="if (newLink.trim()) { links.push(newLink.trim()); newLink = '' }"
+                    x-on:keydown.enter.prevent="
+                        if (newLink.trim()) {
+                            links.push(newLink.trim());
+                            newLink = '';
+                        }
+                    "
                     placeholder="https://ejemplo.com"
                     autocomplete="url"
                     spellcheck="false"
@@ -286,7 +349,12 @@
                     type="button"
                     class="button h-12 w-12 shrink-0 px-0 text-lg disabled:cursor-not-allowed disabled:opacity-50"
                     x-bind:disabled="!newLink.trim()"
-                    x-on:click="if (newLink.trim()) { links.push(newLink.trim()); newLink = '' }"
+                    x-on:click="
+                        if (newLink.trim()) {
+                            links.push(newLink.trim());
+                            newLink = '';
+                        }
+                    "
                     data-test="submit-new-link-button"
                     aria-label="Agregar enlace"
                 >

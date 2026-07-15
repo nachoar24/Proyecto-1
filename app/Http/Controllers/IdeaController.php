@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\CreateIdea;
+use App\Actions\UpdateIdea;
 use App\Enums\IdeaStatus;
 use App\Http\Requests\IdeaRequest;
 use App\Http\Requests\StoreIdeaRequest;
@@ -19,14 +20,25 @@ class IdeaController extends Controller
         return view('ideas.index', [
             'ideas' => $user->ideas()
                 ->when(
-                    in_array($request->query('status'), IdeaStatus::values(), true),
-                    fn ($query) => $query->where('status', $request->query('status'))
+                    in_array(
+                        $request->query('status'),
+                        IdeaStatus::values(),
+                        true
+                    ),
+                    fn ($query) => $query->where(
+                        'status',
+                        $request->query('status')
+                    )
                 )
                 ->latest()
                 ->get(),
             'statuses' => IdeaStatus::cases(),
             'statusCounts' => Idea::statusCounts($user),
-            'currentStatus' => in_array($request->query('status'), IdeaStatus::values(), true)
+            'currentStatus' => in_array(
+                $request->query('status'),
+                IdeaStatus::values(),
+                true
+            )
                 ? $request->query('status')
                 : null,
         ]);
@@ -37,12 +49,17 @@ class IdeaController extends Controller
         return view('ideas.create');
     }
 
-    public function store(StoreIdeaRequest $request, CreateIdea $createIdea)
-    {
+    public function store(
+        StoreIdeaRequest $request,
+        CreateIdea $createIdea
+    ) {
         $createIdea->handle($request->safe()->all());
 
         return to_route('ideas.index')
-            ->with('success', 'La idea fue creada correctamente.');
+            ->with(
+                'success',
+                'La idea fue creada correctamente.'
+            );
     }
 
     public function show(Idea $idea)
@@ -65,17 +82,23 @@ class IdeaController extends Controller
         ]);
     }
 
-    public function update(IdeaRequest $request, Idea $idea)
-    {
+    public function update(
+        IdeaRequest $request,
+        Idea $idea,
+        UpdateIdea $updateIdea
+    ) {
         Gate::authorize('workWith', $idea);
 
-        $validated = $request->validated();
+        $updateIdea->handle(
+            $request->safe()->all(),
+            $idea
+        );
 
-        $idea->update([
-            'description' => $validated['description'],
-        ]);
-
-        return redirect('/ideas/'.$idea->id);
+        return to_route('ideas.show', $idea)
+            ->with(
+                'success',
+                'La idea fue actualizada correctamente.'
+            );
     }
 
     public function destroy(Idea $idea)
@@ -85,6 +108,9 @@ class IdeaController extends Controller
         $idea->delete();
 
         return to_route('ideas.index')
-            ->with('success', 'La idea fue eliminada correctamente.');
+            ->with(
+                'success',
+                'La idea fue eliminada correctamente.'
+            );
     }
 }

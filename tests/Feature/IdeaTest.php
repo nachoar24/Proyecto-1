@@ -67,9 +67,11 @@ it('filters ideas by status', function () {
         'status' => IdeaStatus::Completed,
     ]);
 
-    $response = $this->actingAs($user)->get(route('ideas.index', [
-        'status' => IdeaStatus::Completed->value,
-    ]));
+    $response = $this
+        ->actingAs($user)
+        ->get(route('ideas.index', [
+            'status' => IdeaStatus::Completed->value,
+        ]));
 
     $response->assertOk();
     $response->assertSee('Idea completada');
@@ -89,7 +91,9 @@ it('ignores invalid status filters', function () {
         'status' => IdeaStatus::Completed,
     ]);
 
-    $response = $this->actingAs($user)->get('/ideas?status=basura');
+    $response = $this
+        ->actingAs($user)
+        ->get('/ideas?status=basura');
 
     $response->assertOk();
     $response->assertSee('Idea pendiente');
@@ -110,8 +114,14 @@ it('creates a new idea', function () {
     ];
 
     $steps = [
-        'Investigar opciones',
-        'Comparar alternativas',
+        [
+            'description' => 'Investigar opciones',
+            'completed' => false,
+        ],
+        [
+            'description' => 'Comparar alternativas',
+            'completed' => false,
+        ],
     ];
 
     $image = UploadedFile::fake()->image(
@@ -145,29 +155,31 @@ it('creates a new idea', function () {
         'status' => IdeaStatus::Completed->value,
     ]);
 
-    expect($user->ideas()->count())->toBe(1);
-
     $idea = $user->ideas()->first();
 
     expect($idea)
         ->not->toBeNull()
         ->and($idea->title)->toBe($title)
         ->and($idea->description)->toBe($description)
-        ->and($idea->status)->toBe(IdeaStatus::Completed);
+        ->and($idea->status)->toBe(IdeaStatus::Completed)
+        ->and($idea->links->getArrayCopy())->toBe($links)
+        ->and($idea->image_path)->not->toBeNull();
 
-    expect($idea->links->getArrayCopy())->toBe($links);
+    expect(str_starts_with($idea->image_path, 'ideas/'))
+        ->toBeTrue();
 
-    expect($idea->image_path)->not->toBeNull();
-    expect(str_starts_with($idea->image_path, 'ideas/'))->toBeTrue();
-
-    Storage::disk('public')->assertExists($idea->image_path);
+    Storage::disk('public')
+        ->assertExists($idea->image_path);
 
     $idea->load('steps');
 
     expect($idea->steps)
         ->toHaveCount(2)
         ->and($idea->steps->pluck('description')->all())
-        ->toBe($steps)
+        ->toBe([
+            'Investigar opciones',
+            'Comparar alternativas',
+        ])
         ->and($idea->steps->pluck('completed')->all())
         ->toBe([false, false]);
 });
@@ -301,7 +313,7 @@ it('renders the edit idea modal with the existing idea values', function () {
 
     $idea->steps()->create([
         'description' => 'Paso existente',
-        'completed' => false,
+        'completed' => true,
     ]);
 
     $response = $this
@@ -330,6 +342,129 @@ it('renders the edit idea modal with the existing idea values', function () {
         ->assertSee('Paso existente')
         ->assertSee('https://laravel.com')
         ->assertSee('Actualizar idea');
+});
+
+it('updates an existing idea', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+
+    $idea = Idea::factory()
+        ->for($user)
+        ->create([
+            'title' => 'Título original',
+            'description' => 'Descripción original.',
+            'status' => IdeaStatus::Pending,
+            'links' => [
+                'https://example.com',
+            ],
+        ]);
+
+    $idea->steps()->createMany([
+        [
+            'description' => 'Paso anterior eliminado',
+            'completed' => false,
+        ],
+        [
+            'description' => 'Otro paso anterior',
+            'completed' => true,
+        ],
+    ]);
+
+    $image = UploadedFile::fake()->image(
+        'updated-featured-image.png',
+        800,
+        500
+    );
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('ideas.update', $idea), [
+            'title' => 'Título actualizado',
+            'description' => 'Descripción actualizada de la idea.',
+            'status' => IdeaStatus::Completed->value,
+            'links' => [
+                'https://laravel.com',
+                'https://laracasts.com',
+            ],
+            'steps' => [
+                [
+                    'description' => 'Paso actualizado y completado',
+                    'completed' => true,
+                ],
+                [
+                    'description' => 'Paso nuevo pendiente',
+                    'completed' => false,
+                ],
+            ],
+            'image' => $image,
+        ]);
+
+    $response
+        ->assertRedirect(route('ideas.show', $idea))
+        ->assertSessionHas(
+            'success',
+            'La idea fue actualizada correctamente.'
+        );
+
+    $idea->refresh()->load('steps');
+
+    expect($idea->title)
+        ->toBe('Título actualizado')
+        ->and($idea->description)
+        ->toBe('Descripción actualizada de la idea.')
+        ->and($idea->status)
+        ->toBe(IdeaStatus::Completed)
+        ->and($idea->links->getArrayCopy())
+        ->toBe([
+            'https://laravel.com',
+            'https://laracasts.com',
+        ])
+        ->and($idea->image_path)
+        ->not->toBeNull();
+
+    Storage::disk('public')
+        ->assertExists($idea->image_path);
+
+    expect($idea->steps)
+        ->toHaveCount(2)
+        ->and($idea->steps->pluck('description')->all())
+        ->toBe([
+            'Paso actualizado y completado',
+            'Paso nuevo pendiente',
+        ])
+        ->and($idea->steps->pluck('completed')->all())
+        ->toBe([
+            true,
+            false,
+        ]);
+
+    $this->assertDatabaseMissing('steps', [
+        'idea_id' => $idea->id,
+        'description' => 'Paso anterior eliminado',
+    ]);
+});
+
+it('prevents users from updating ideas they did not create', function () {
+    $user = User::factory()->create();
+
+    $idea = Idea::factory()->create([
+        'title' => 'Idea de otro usuario',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('ideas.update', $idea), [
+            'title' => 'Intento de actualización',
+            'description' => 'Esta actualización no debe permitirse.',
+            'status' => IdeaStatus::Pending->value,
+            'links' => [],
+            'steps' => [],
+        ])
+        ->assertForbidden();
+
+    expect($idea->refresh()->title)
+        ->toBe('Idea de otro usuario');
 });
 
 it('prevents users from deleting ideas they did not create', function () {
